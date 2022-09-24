@@ -50,7 +50,6 @@ async function signupService(data) {
   return await response;
 }
 
-<<<<<<< HEAD
 async function loginService(emailId, password) {
     let user = await User.findOne({
         where: {
@@ -73,14 +72,12 @@ async function loginService(emailId, password) {
 }
 
 async function searchService(query) {
-    let sequelize = new Sequelize(process.env.DATABASE_URL);
     let result = await User.findAll({
-        where: {
-          [User.fn('concat', User.col('firstName'), ' ', User.col('lastName')), {
-            like: '%' + query + '%'
-          
-        }]},})
+      where: {
+        [Op.like]: [{emailId: '%'+query+'%'}]
+    }
 });
+console.log(result);
 return result;
 }
 // async function verifyAccount(
@@ -120,8 +117,6 @@ return result;
 //   await client.query(insertStatement, values, callback);
 // }
 
-=======
->>>>>>> 11399f58a64878132736c9da7b8f54437cbe84b8
 module.exports = {
   signupService, loginService, searchService,
 };
