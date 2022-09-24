@@ -5,6 +5,9 @@ var bodyParser = require("body-parser");
 const signuproute = require("./routes/signuproute");
 app.use(signuproute);
 
+const loginroute = require("./routes/loginroute");
+app.use(loginroute);
+
 const testroute = require("./routes/testroute.js");
 app.use(testroute);
 

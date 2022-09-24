@@ -13,6 +13,15 @@ app.post("/signup", urlencodedParser, function (request, response) {
 
   console.log(data.firstName);
 
+  // Check if User exists
+  //   let userExists = false;
+
+  //   if (userExists) {
+  //     responseObject = { message: "User Already Exists", status: 500 };
+  //     response.status(500);
+  //     response.send(responseObject);
+  //   }
+
   // Call Create Account Service
   if (data.role == 400) {
     createAccount(0)
