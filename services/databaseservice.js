@@ -4,6 +4,7 @@ const { response } = require("express");
 const { User } = require("../middleware/databaseconnection.js");
 const jwt = require("jsonwebtoken");
 const Sequelize = require("sequelize");
+const Op = Sequelize.Op;
 async function signupService(data) {
   let encryptedPassword = bcrypt.hashSync(data.password, 10);
 
@@ -51,72 +52,61 @@ async function signupService(data) {
 }
 
 async function loginService(emailId, password) {
-    let user = await User.findOne({
-        where: {
-            emailId: emailId
-        }
-    });
-    if (!user) return false;
-    
-    bcrypt.compare(password, user.password, function(err, res) {
-      if (err){
-        console.log(err);
-      }
-      if (res) {
-        return true;
-      } else {
-        // response is OutgoingMessage object that server response http request
-        return false;
-      }
-    });
-}
+  let user = await User.findOne({
+    where: {
+      emailId: emailId,
+    },
+  });
+  if (!user) return false;
 
-async function searchService(query) {
-    let result = await User.findAll({
-      where: {
-        [Op.like]: [{emailId: '%'+query+'%'}]
+  bcrypt.compare(password, user.password, function (err, res) {
+    if (err) {
+      console.log(err);
     }
-});
-console.log(result);
-return result;
+    if (res) {
+      return true;
+    } else {
+      // response is OutgoingMessage object that server response http request
+      return false;
+    }
+  });
 }
-// async function verifyAccount(
-//   firstName,
-//   publicKey,
-//   accountId,
-//   privateKey,
-//   lastName,
-//   emailId,
-//   password,
-//   role
-// ) {
-//   let encryptedPassword = crypt(password);
 
-//   const insertStatement =
-//     "INSERT INTO CertiChain.user_details (firstName, lastName, emailId, password, role, publicKey, privateKey, accountId) VALUES ? ;";
+async function searchService(query, queryType) {
+  let queryOn = "";
+  let data;
+  if (queryType == 0) {
+    data = await User.findAll({
+      where: {
+        emailId: {
+          [Op.like]: `%${query}%`,
+        },
+      },
+    });
+  } else if (queryType == 1) {
+    data = await User.findAll({
+      where: {
+        firstName: {
+          [Op.like]: `%${query}%`,
+        },
+      },
+    });
+  } else {
+    data = await User.findAll({
+      where: {
+        lastName: {
+          [Op.like]: `%${query}%`,
+        },
+      },
+    });
+  }
+  // console.log("INSIDE SEARCH");
 
-//   var values = [
-//     firstName,
-//     lastName,
-//     emailId,
-//     encryptedPassword,
-//     role,
-//     publicKey,
-//     privateKey,
-//     accountId,
-//   ];
-
-//   const connectionString = process.env.DATABASE_URL;
-//   const pool = new Pool({
-//     connectionString,
-//   });
-
-//   // Connect to database
-//   const client = await pool.connect();
-
-//   await client.query(insertStatement, values, callback);
-// }
+  return data;
+}
 
 module.exports = {
-  signupService, loginService, searchService,
+  signupService,
+  loginService,
+  searchService,
 };

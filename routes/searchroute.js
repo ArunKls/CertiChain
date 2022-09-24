@@ -7,12 +7,13 @@ const jsonParser = bodyParser.json();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
 const { searchService } = require("../services/databaseservice");
 
-app.post("/search", urlencodedParser, async function (request, response) {
+app.get("/search", urlencodedParser, async function (request, response) {
   query = request.body.query;
+  queryType = request.body.queryType;
 
-  searchService(query)
+  searchService(query, queryType)
     .then((result) => {
-      console.log(result);
+      // console.log(result);
       searchResult = result;
       responseObject = {
         searchResult,
