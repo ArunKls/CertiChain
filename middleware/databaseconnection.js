@@ -11,24 +11,24 @@ const Sequelize = require("sequelize");
 const fs = require("fs");
 
 let sequelize = new Sequelize(
-  {
-    dialect: "postgres",
-    username: "avnadmin",
-    password: "AVNS_zRGb8EI4Qd4XxiITPik",
-    host: "pg-3d82c9b9-arunkls195-f6c0.aivencloud.com",
-    port: 27159,
-    // cluster_name: "whole-forager-5183",
-    database: "defaultdb",
+  //   {
+  //     dialect: "postgres",
+  //     username: "avnadmin",
+  //     password: "AVNS_zRGb8EI4Qd4XxiITPik",
+  //     host: "pg-3d82c9b9-arunkls195-f6c0.aivencloud.com",
+  //     port: 27159,
+  //     // cluster_name: "whole-forager-5183",
+  //     database: "defaultdb",
 
-    dialectOptions: {
-      ssl: {
-        ca: fs.readFileSync("./middleware/ca.cer").toString(),
-      },
-    },
+  //     dialectOptions: {
+  //       ssl: {
+  //         ca: fs.readFileSync("./middleware/ca.cer").toString(),
+  //       },
+  //     },
 
-    logging: false,
-  }
-  //   process.env.POSTGRES_DB
+  //     logging: false,
+  //   }
+  process.env.DATABASE_URL
 );
 
 const User = sequelize.define("users", {

@@ -5,8 +5,6 @@ const { User } = require("../middleware/databaseconnection.js");
 async function signupService(data) {
   let encryptedPassword = bcrypt.hashSync(data.password, 10);
 
-  console.log(encryptedPassword);
-
   await User.create({
     firstName: data.firstName,
     lastName: data.lastName,
@@ -16,6 +14,8 @@ async function signupService(data) {
     publicKey: data.publicKey,
     privateKey: data.privateKey,
     accountId: data.accountId,
+  }).catch((error) => {
+    console.log(error);
   });
 
   // User.create({
