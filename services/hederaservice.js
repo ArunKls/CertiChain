@@ -247,7 +247,7 @@ async function sendCertificate(operator, sender, receiver) {
   console.log(tokenSupply.toString());
 }
 
-async function sendTransaction(operator, sender, receiver) {
+async function sendTransaction(operator, sender, receiver, cid) {
   const operatorAccountId = operator.accountId;
   const operatorPrivateKey = operator.privateKey;
   const senderAccountId = sender.accountId;
@@ -265,7 +265,7 @@ async function sendTransaction(operator, sender, receiver) {
   const transaction = await new TokenCreateTransaction()
     .setTokenName("USD Bar")
     .setTokenSymbol("USDB")
-    .setTokenMemo("abcdefg")
+    .setTokenMemo(cid.toString())
     .setTreasuryAccountId(operatorAccountId)
     .setInitialSupply(0)
     .setDecimals(2)
@@ -286,10 +286,33 @@ async function sendTransaction(operator, sender, receiver) {
       transactionReceipt.status.toString()
   );
 
-  //Get the token ID from the receipt
   const tokenId = transactionReceipt.tokenId;
 
   console.log("The new token ID is " + tokenId);
+
+  let senderClient = Client.forTestnet().setOperator(
+    senderAccountId,
+    senderPrivateKey
+  );
+
+  let receiverClient = Client.forTestnet().setOperator(
+    receiverAccountId,
+    receiverPrivateKey
+  );
+
+  //Get the token ID from the receipt
+  // let accBa
+  // var balanceCheckTx = await new AccountBalanceQuery()
+  //   .setAccountId(receiverDetails.accountId)
+  //   .execute(receiverClient);
+
+  // console.log(balanceCheckTx.tokens.toString());
+
+  // console.log(
+  //   `- Receiver's balance: ${balanceCheckTx.tokens._map.get(
+  //     tokenId.toString()
+  //   )} Tokens of ID ${tokenId}`
+  // );
 
   //Request the cost of the query
   // const queryCost = await new AccountBalanceQuery()
@@ -297,20 +320,16 @@ async function sendTransaction(operator, sender, receiver) {
   //   .getCost(client);
 
   // console.log("The cost of query is: " + queryCost);
+  // for(var i = 0; i < balanceCheckTx.length; i++) {
 
-  client.setOperator(receiverDetails.accountId, receiverDetails.privateKey);
+  // }
 
-  query = new TokenInfoQuery().setTokenId(tokenId);
+  // query = new TokenInfoQuery().setTokenId(tokenId);
 
-  //Sign with the client operator private key, submit the query to the network and get the token supply
-  const tokenSupply = (await query.execute(client)).tokenMemo;
+  // //Sign with the client operator private key, submit the query to the network and get the token supply
+  // const tokenSupply = (await query.execute(receiverClient)).tokenMemo;
 
-  console.log(tokenSupply.toString());
-
-  let senderClient = Client.forTestnet().setOperator(
-    senderAccountId,
-    senderPrivateKey
-  );
+  //console.log(tokenSupply.toString());
 
   let accBalSenderQuery = new AccountBalanceQuery().setAccountId(
     senderDetails.accountId
@@ -323,11 +342,6 @@ async function sendTransaction(operator, sender, receiver) {
     "The account balance for sender: " + senderAccBalance.hbars.toString()
   );
 
-  let receiverClient = Client.forTestnet().setOperator(
-    receiverAccountId,
-    receiverPrivateKey
-  );
-
   let accBalReceiverQuery = new AccountBalanceQuery().setAccountId(
     receiverDetails.accountId
   );
@@ -338,21 +352,23 @@ async function sendTransaction(operator, sender, receiver) {
   console.log(
     "The account balance for receiver: " + receiverAccBalance.hbars.toString()
   );
+  console.log(receiverAccBalance.tokens.toString());
+
 }
 
 async function hederaTransaction() {
-  // senderDetails = await createAccount(15);
-  // receiverDetails = await createAccount(10);
-
-  // let certificateSent = sendTransaction(
-  //   senderDetails,
-  //   senderDetails,
-  //   receiverDetails
-  // );
-
   let file = makeFileObjects();
-  let cid = storeFiles(file);
+  let cid = await storeFiles(file);
   console.log(cid);
+  senderDetails = await createAccount(15);
+  receiverDetails = await createAccount(10);
+
+  let certificateSent = sendTransaction(
+    senderDetails,
+    senderDetails,
+    receiverDetails,
+    cid
+  );
 }
 
 module.exports = { hederaTransaction };
