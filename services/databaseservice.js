@@ -78,7 +78,28 @@ var crypt = {
     return decipher;
   }
 };
+(async () => {
+    const connectionString = process.env.DATABASE_URL;
+    const pool = new Pool({
+        connectionString,
+        application_name: "$ docs_simplecrud_node-postgres",
+    });
 
+    // Connect to database
+    const client = await pool.connect();
+
+    // Callback
+    function cb(err, res) {
+        if (err) throw err;
+
+        if (res.rows.length > 0) {
+        console.log("New account balances:");
+        res.rows.forEach((row) => {
+            console.log(row);
+        });
+        }
+    }
+});
 module.exports = {
   createAccount,
 };
