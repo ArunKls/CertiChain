@@ -9,67 +9,14 @@ const {
   TokenMintTransaction,
   TransferTransaction,
   AccountBalanceQuery,
+  AccountInfoQuery,
   TokenAssociateTransaction,
   AccountCreateTransaction,
   Hbar,
   TokenInfoQuery,
-  AccountInfoQuery,
 } = require("@hashgraph/sdk");
 
 require("dotenv").config();
-const { Web3Storage, File } = require("web3.storage");
-const { Blob } = require("buffer");
-
-function getAccessToken() {
-  return process.env.WEB3STORAGE_TOKEN;
-}
-function makeStorageClient() {
-  return new Web3Storage({ token: getAccessToken() });
-}
-
-function makeFileObjects() {
-  const obj = {
-    "Certificate Name": "test35444444",
-    "Certificate Details": "tsss",
-  };
-  const blob = new Blob([JSON.stringify(obj)], { type: "application/json" });
-  const file = new File([blob], "certificate3.json");
-  return [file];
-}
-
-async function storeFiles(file) {
-  console.log("Storing the File");
-  const client = makeStorageClient();
-  const cid = await client.put(file);
-  console.log("stored files with cid:", cid);
-  return cid;
-}
-
-async function retrieveFileContents(cid) {
-  const client = makeStorageClient();
-  const res = await client.get(cid);
-
-  console.log(`Got a response! [${res.status}] ${res.statusText}`);
-  if (!res.ok) {
-    throw new Error(`failed to get ${cid}`);
-  }
-
-  const files = await res.files();
-
-  console.log(files);
-
-  for (const file of files) {
-    // console.log(JSON.stringify(file));
-
-    let fileData = await file.arrayBuffer();
-    console.log("FILE DATA", fileData);
-    var enc = new TextDecoder();
-
-    let objectData = enc.decode(fileData);
-
-    console.log(objectData);
-  }
-}
 
 async function createAccount(amount) {
   const myAccountId = process.env.MY_ACCOUNT_ID;
@@ -275,17 +222,10 @@ async function sendCertificate(operator, sender, receiver) {
 
   console.log(tokenSupply.toString());
 }
-
-async function sendTransaction(operator, sender, receiver, cid) {
+async function createToken(operator, cid) {
   const operatorAccountId = operator.accountId;
   const operatorPrivateKey = operator.privateKey;
-  const senderAccountId = sender.accountId;
-  const senderPrivateKey = sender.privateKey;
-  const receiverAccountId = receiver.accountId;
-  const receiverPrivateKey = receiver.privateKey;
 
-  // Create our connection to the Hedera network
-  // The Hedera JS SDK makes this really easy!
   let client = Client.forTestnet().setOperator(
     operatorAccountId,
     operatorPrivateKey
@@ -319,6 +259,24 @@ async function sendTransaction(operator, sender, receiver, cid) {
 
   console.log("The new token ID is " + tokenId);
 
+  return tokenId;
+}
+
+async function sendToken(operator, sender, receiver, tokenId) {
+  const operatorAccountId = operator.accountId;
+  const operatorPrivateKey = operator.privateKey;
+  const senderAccountId = sender.accountId;
+  const senderPrivateKey = sender.privateKey;
+  const receiverAccountId = receiver.accountId;
+  const receiverPrivateKey = receiver.privateKey;
+
+  // Create our connection to the Hedera network
+  // The Hedera JS SDK makes this really easy!
+  let client = Client.forTestnet().setOperator(
+    operatorAccountId,
+    operatorPrivateKey
+  );
+
   let senderClient = Client.forTestnet().setOperator(
     senderAccountId,
     senderPrivateKey
@@ -327,6 +285,23 @@ async function sendTransaction(operator, sender, receiver, cid) {
   let receiverClient = Client.forTestnet().setOperator(
     receiverAccountId,
     receiverPrivateKey
+  );
+
+  let associateReceiverTx = await new TokenAssociateTransaction()
+    .setAccountId(receiverAccountId)
+    .setTokenIds([tokenId])
+    .freezeWith(client)
+    .sign(receiverPrivateKey);
+
+  //SUBMIT THE TRANSACTION
+  let associateReceiverTxSubmit = await associateReceiverTx.execute(client);
+
+  //GET THE RECEIPT OF THE TRANSACTION
+  let associateReceiverRx = await associateReceiverTxSubmit.getReceipt(client);
+
+  //LOG THE TRANSACTION STATUS
+  console.log(
+    `- Token association with Receiver's account: ${associateReceiverRx.status} \n`
   );
 
   //Get the token ID from the receipt
@@ -352,61 +327,46 @@ async function sendTransaction(operator, sender, receiver, cid) {
   // for(var i = 0; i < balanceCheckTx.length; i++) {
 
   // }
+}
 
-  // query = new TokenInfoQuery().setTokenId(tokenId);
-
-  // //Sign with the client operator private key, submit the query to the network and get the token supply
-  // const tokenSupply = (await query.execute(receiverClient)).tokenMemo;
-
-  //console.log(tokenSupply.toString());
-
-  let accBalSenderQuery = new AccountBalanceQuery().setAccountId(
-    senderDetails.accountId
+async function getBalance(clientDetails, name, getTokenCid) {
+  let client = Client.forTestnet().setOperator(
+    clientDetails.accountId,
+    clientDetails.privateKey
+  );
+  let accBalClientQuery = new AccountBalanceQuery().setAccountId(
+    clientDetails.accountId
   );
 
   //Sign with the client operator private key and submit to a Hedera network
-  const senderAccBalance = await accBalSenderQuery.execute(senderClient);
+  const clientAccBalance = await accBalClientQuery.execute(client);
 
   console.log(
-    "The account balance for sender: " + senderAccBalance.hbars.toString()
+    "The account balance for " + name + ": " + clientAccBalance.hbars.toString()
   );
+  const result = [];
+  if (getTokenCid === true) {
+    console.log("INSIDE");
+    clientAccBalance.tokens._map.forEach((v, k) => {
+      query = new TokenInfoQuery().setTokenId(k);
+      query.execute(client).then((value) => {
+        tokenMemo = value.tokenMemo;
 
-  // ----------------------------------------------
-  let accBalReceiverQuery = new AccountInfoQuery().setAccountId(
-    receiverDetails.accountId
-  );
+        console.log("TOKEN MEMO", tokenMemo);
+        console.log("cid: " + tokenMemo.toString());
+        result.push(tokenMemo.toString());
+      });
+    });
+  }
 
-  let receiverMirrorClient = Client.forTestnet();
-  receiverMirrorClient.setMirrorNetwork(
-    "hcs.testnet.mirrornode.hedera.com:5600"
-  );
-  receiverMirrorClient.setOperator(receiverAccountId, receiverPrivateKey);
-
-  //Sign with the client operator private key and submit to a Hedera network
-  const receiverAccBalance = await accBalReceiverQuery.execute(
-    receiverMirrorClient
-  );
-
-  console.log("The account balance for receiver: " + receiverAccBalance);
-  // console.log(receiverAccBalance.tokens.toString());
+  console.log("RESULT", result);
+  return result;
 }
 
-async function hederaTransaction() {
-  let file = makeFileObjects();
-  console.log("FILE", file);
-  let cid = await storeFiles(file);
-  console.log(cid);
-
-  retrieveFileContents(cid);
-  // senderDetails = await createAccount(15);
-  // receiverDetails = await createAccount(10);
-
-  // let certificateSent = sendTransaction(
-  //   senderDetails,
-  //   senderDetails,
-  //   receiverDetails,
-  //   cid
-  // );
-}
-
-module.exports = { hederaTransaction };
+module.exports = {
+  createAccount,
+  sendCertificate,
+  createToken,
+  sendToken,
+  getBalance,
+};
