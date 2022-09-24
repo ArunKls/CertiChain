@@ -34,3 +34,52 @@ async function retryTxn(n, max, client, operation, callback) {
   }
 }
 
+async function createAccount(firstName, publicKey, accountId, privateKey, lastName, emailId, password, role) {
+
+  let encryptedPassword = crypt(password);
+
+  const insertStatement =
+    "INSERT INTO CertiChain.user_details (firstName, lastName, emailId, password, role, publicKey, privateKey, accountId) VALUES ? ;"
+  
+  var values = [firstName, lastName, emailId, encryptedPassword, role, publicKey, privateKey, accountId];
+
+  await client.query(insertStatement, values, callback);
+
+}
+
+async function verifyAccount(firstName, publicKey, accountId, privateKey, lastName, emailId, password, role) {
+
+  let encryptedPassword = crypt(password);
+
+  const insertStatement =
+    "INSERT INTO CertiChain.user_details (firstName, lastName, emailId, password, role, publicKey, privateKey, accountId) VALUES ? ;"
+  
+  var values = [firstName, lastName, emailId, encryptedPassword, role, publicKey, privateKey, accountId];
+
+  await client.query(insertStatement, values, callback);
+
+}
+
+var crypt = {
+  // (B1) THE SECRET KEY
+  secret : "CIPHERKEY",
+ 
+  // (B2) ENCRYPT
+  encrypt : (password) => {
+    var cipher = CryptoJS.AES.encrypt(password, crypt.secret);
+    cipher = cipher.toString();
+    return cipher;
+  },
+ 
+  //(B3) DECRYPT
+  decrypt : (password) => {
+    var decipher = CryptoJS.AES.decrypt(password, crypt.secret);
+    decipher = decipher.toString(CryptoJS.enc.Utf8);
+    return decipher;
+  }
+};
+
+module.exports = {
+  createAccount,
+};
+

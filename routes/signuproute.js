@@ -6,6 +6,10 @@ const bodyParser = require("body-parser");
 const jsonParser = bodyParser.json();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
 
+const {
+  createAccount
+} = require("../services/databaseservice");
+
 app.post("/signup", urlencodedParser, function (request, response) {
   //   console.log(request);
 
@@ -25,12 +29,14 @@ app.post("/signup", urlencodedParser, function (request, response) {
   // Call Create Account Service
   if (data.role == 400) {
     createAccount(0)
-      .then((newAccount) => {
+      .then(async (newAccount) => {
         data.publicKey = newAccount.publicKey;
         data.accountId = newAccount.accountId;
         data.privateKey = newAccount.privateKey;
 
         // Call Database Service
+
+        await createAccount(data.firstName, data.publicKey, data.accountId, data.privateKey, data.lastName, data.emailId, data.password, data.role);
 
         responseObject = { message: "SignUp Successful", status: 200 };
         response.status(200);
