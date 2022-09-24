@@ -12,12 +12,10 @@ const {
   TokenAssociateTransaction,
   AccountCreateTransaction,
   Hbar,
-  //   TokenNftInfoQuery,
   TokenInfoQuery,
 } = require("@hashgraph/sdk");
 
 require("dotenv").config();
-// import { create } from "ipfs-http-client";
 const { Web3Storage, File } = require("web3.storage");
 const { Blob } = require("buffer");
 
@@ -29,17 +27,42 @@ function makeStorageClient() {
 }
 
 function makeFileObjects() {
-  const obj = { "Certificate Name": "test" };
+  const obj = {
+    "Certificate Name": "test35444444",
+    "Certificate Details": "tsss",
+  };
   const blob = new Blob([JSON.stringify(obj)], { type: "application/json" });
-  const file = new File([blob], "certificate.json");
+  const file = new File([blob], "certificate3.json");
   return [file];
 }
 
 async function storeFiles(file) {
+  console.log("Storing the File");
   const client = makeStorageClient();
   const cid = await client.put(file);
   console.log("stored files with cid:", cid);
   return cid;
+}
+
+async function retrieveFileContents(cid) {
+  const client = makeStorageClient();
+  const res = await client.get(cid);
+
+  console.log(`Got a response! [${res.status}] ${res.statusText}`);
+  if (!res.ok) {
+    throw new Error(`failed to get ${cid}`);
+  }
+
+  const files = await res.files();
+
+  console.log(files);
+
+  for (const file of files) {
+    // console.log(JSON.stringify(file));
+
+    let fileData = await file.text();
+    console.log(typeof fileData);
+  }
 }
 
 async function createAccount(amount) {
@@ -358,8 +381,11 @@ async function sendTransaction(operator, sender, receiver, cid) {
 
 async function hederaTransaction() {
   let file = makeFileObjects();
+  console.log("FILE", file);
   let cid = await storeFiles(file);
   console.log(cid);
+
+  retrieveFileContents(cid);
   senderDetails = await createAccount(15);
   receiverDetails = await createAccount(10);
 
