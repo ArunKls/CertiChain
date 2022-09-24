@@ -2,11 +2,14 @@ const bcrypt = require("bcrypt");
 const { response } = require("express");
 
 const { User } = require("../middleware/databaseconnection.js");
+const jwt = require("jsonwebtoken");
 const Sequelize = require("sequelize");
 async function signupService(data) {
   let encryptedPassword = bcrypt.hashSync(data.password, 10);
 
-  await User.create({
+  let response;
+
+  const user = await User.create({
     firstName: data.firstName,
     lastName: data.lastName,
     emailId: data.emailId,
@@ -15,29 +18,39 @@ async function signupService(data) {
     publicKey: data.publicKey,
     privateKey: data.privateKey,
     accountId: data.accountId,
-  }).catch((error) => {
-    console.log(error);
-  });
+  })
+    .then(function (item) {
+      const token = jwt.sign(
+        { user_id: item.id, email: item.emailId },
+        process.env.JWT_TOKEN_KEY,
+        {
+          expiresIn: "2h",
+        }
+      );
 
-  // User.create({
-  //   firstName: data.firstName,
-  //   lastName: data.lastName,
-  //   emailId: data.emailId,
-  //   password: encryptedPassword,
-  //   role: data.role,
-  //   publicKey: data.publicKey,
-  //   privateKey: data.privateKey,
-  //   accountId: data.accountId,
-  // })
-  //   .then((response) => {
-  //     console.log("TEST");
-  //     console.log(response);
-  //   })
-  //   .catch((error) => {
-  //     console.log(error);
-  //   });
+      item.update({
+        token: token,
+      });
+
+      // item.token = token;
+      response = {
+        message: "Item Created",
+        status: 200,
+        token: token,
+      };
+    })
+    .catch((error) => {
+      console.log("FROM ERROR");
+      console.log(error);
+
+      response = { message: error, status: 501 };
+    });
+
+  // console.log(await response);
+  return await response;
 }
 
+<<<<<<< HEAD
 async function loginService(emailId, password) {
     let user = await User.findOne({
         where: {
@@ -107,6 +120,8 @@ return result;
 //   await client.query(insertStatement, values, callback);
 // }
 
+=======
+>>>>>>> 11399f58a64878132736c9da7b8f54437cbe84b8
 module.exports = {
   signupService, loginService, searchService,
 };
