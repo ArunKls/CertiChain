@@ -9,6 +9,7 @@ const {
   TokenMintTransaction,
   TransferTransaction,
   AccountBalanceQuery,
+  AccountInfoQuery,
   TokenAssociateTransaction,
   AccountCreateTransaction,
   Hbar,
@@ -323,6 +324,23 @@ async function sendTransaction(operator, sender, receiver, cid) {
     receiverPrivateKey
   );
 
+  let associateReceiverTx = await new TokenAssociateTransaction()
+    .setAccountId(receiverAccountId)
+    .setTokenIds([tokenId])
+    .freezeWith(client)
+    .sign(receiverPrivateKey);
+
+  //SUBMIT THE TRANSACTION
+  let associateReceiverTxSubmit = await associateReceiverTx.execute(client);
+
+  //GET THE RECEIPT OF THE TRANSACTION
+  let associateReceiverRx = await associateReceiverTxSubmit.getReceipt(client);
+
+  //LOG THE TRANSACTION STATUS
+  console.log(
+    `- Token association with Receiver's account: ${associateReceiverRx.status} \n`
+  );
+
   //Get the token ID from the receipt
   // let accBa
   // var balanceCheckTx = await new AccountBalanceQuery()
@@ -347,13 +365,6 @@ async function sendTransaction(operator, sender, receiver, cid) {
 
   // }
 
-  // query = new TokenInfoQuery().setTokenId(tokenId);
-
-  // //Sign with the client operator private key, submit the query to the network and get the token supply
-  // const tokenSupply = (await query.execute(receiverClient)).tokenMemo;
-
-  //console.log(tokenSupply.toString());
-
   let accBalSenderQuery = new AccountBalanceQuery().setAccountId(
     senderDetails.accountId
   );
@@ -375,8 +386,15 @@ async function sendTransaction(operator, sender, receiver, cid) {
   console.log(
     "The account balance for receiver: " + receiverAccBalance.hbars.toString()
   );
-  console.log(receiverAccBalance.tokens.toString());
+  receiverAccBalance.tokens._map.forEach(async (v, k) => {
+    query = new TokenInfoQuery().setTokenId(k);
 
+    //Sign with the client operator private key, submit the query to the network and get the token supply
+    const tokenMemo = (await query.execute(receiverClient)).tokenMemo;
+
+    console.log("cid: " + tokenMemo.toString());
+    retrieveFileContents(tokenMemo.toString());
+  });
 }
 
 async function hederaTransaction() {
@@ -385,8 +403,7 @@ async function hederaTransaction() {
   let cid = await storeFiles(file);
   console.log(cid);
 
-  retrieveFileContents(cid);
-  senderDetails = await createAccount(15);
+  senderDetails = await createAccount(20);
   receiverDetails = await createAccount(10);
 
   let certificateSent = sendTransaction(
