@@ -5,25 +5,25 @@ const bodyParser = require("body-parser");
 const res = require("express/lib/response");
 const jsonParser = bodyParser.json();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
+const { loginService } = require("../services/databaseservice");
 
-app.post("/login", urlencodedParser, function (request, response) {
+app.post("/login", urlencodedParser, async function (request, response) {
   emailId = request.body.emailId;
   password = request.body.password;
 
-  let checkUser = true;
-
+  let checkUser = await loginService(emailId, password);
   // Check Database Service
   // if true
 
   if (checkUser) {
-    object = {};
+    object = { message: "Logged in Succesfully!", status: 200 };
 
     response.status(200);
     response.send(object);
   } else {
     object = { message: "Invalid Login Credentials", status: 501 };
     response.status(501);
-    response.send(response);
+    response.send(object);
   }
 });
 

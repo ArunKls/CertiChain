@@ -1,7 +1,8 @@
 const bcrypt = require("bcrypt");
+const { response } = require("express");
 
 const { User } = require("../middleware/databaseconnection.js");
-
+const Sequelize = require("sequelize");
 async function signupService(data) {
   let encryptedPassword = bcrypt.hashSync(data.password, 10);
 
@@ -37,6 +38,38 @@ async function signupService(data) {
   //   });
 }
 
+async function loginService(emailId, password) {
+    let user = await User.findOne({
+        where: {
+            emailId: emailId
+        }
+    });
+    if (!user) return false;
+    
+    bcrypt.compare(password, user.password, function(err, res) {
+      if (err){
+        console.log(err);
+      }
+      if (res) {
+        return true;
+      } else {
+        // response is OutgoingMessage object that server response http request
+        return false;
+      }
+    });
+}
+
+async function searchService(query) {
+    let sequelize = new Sequelize(process.env.DATABASE_URL);
+    let result = await User.findAll({
+        where: {
+          [User.fn('concat', User.col('firstName'), ' ', User.col('lastName')), {
+            like: '%' + query + '%'
+          
+        }]},})
+});
+return result;
+}
 // async function verifyAccount(
 //   firstName,
 //   publicKey,
@@ -75,5 +108,5 @@ async function signupService(data) {
 // }
 
 module.exports = {
-  signupService,
+  signupService, loginService, searchService,
 };
