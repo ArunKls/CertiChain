@@ -12,7 +12,9 @@
     "@hashgraph/sdk": "^2.18.2",
     "dotenv": "^16.0.2",
     "express": "^4.18.1",
+    "ipfs-http-client": "^58.0.1",
     "mongod": "^2.0.0",
-    "nodemon": "^2.0.20"
+    "nodemon": "^2.0.20",
+    "web3.storage": "^4.4.0"
   }
 }

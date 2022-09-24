@@ -17,6 +17,43 @@ const {
 } = require("@hashgraph/sdk");
 
 require("dotenv").config();
+// import { create } from "ipfs-http-client";
+const { Web3Storage } = require("web3.storage");
+const { Blob } = require("buffer");
+// const { File } = require();
+const fs = require("fs");
+
+function getAccessToken() {
+  return process.env.WEB3STORAGE_TOKEN;
+}
+function makeStorageClient() {
+  return new Web3Storage({ token: getAccessToken() });
+}
+
+function makeFileObjects() {
+  const obj = { "Certificate Name": "test" };
+  // const blob = new Blob([JSON.stringify(obj)], { type: "application/json" });
+
+  fs.writeFileSync("certificate.json", JSON.stringify(obj));
+
+  console.log("FILE CREATED");
+
+  // const file = new File([blob], "hello.json");
+
+  // return file;
+}
+
+async function storeFiles() {
+  const client = makeStorageClient();
+  // let file = fs.readFileSync("certificate.json");
+  const pathFiles = await getFilesFromPath("certificate.json");
+
+  console.log("FILE CONTENTS", pathFiles);
+  console.log("FILE CONTENTS", ...pathFiles);
+  const cid = await client.put(...pathFiles);
+  console.log("stored files with cid:", cid);
+  return cid;
+}
 
 async function createAccount(amount) {
   const myAccountId = process.env.MY_ACCOUNT_ID;
@@ -85,8 +122,9 @@ async function sendCertificate(operator, sender, receiver) {
     .setInitialSupply(0)
     .setTreasuryAccountId(treasuryId)
     .setSupplyType(TokenSupplyType.Finite)
-    // .setMaxSupply(250)
+    .setMaxSupply(250)
     .setSupplyKey(supplyKey)
+    // .setTransactionMemo("")
     .freezeWith(client);
 
   let nftCreateTxSign = await nftCreate.sign(treasuryKey);
@@ -104,7 +142,7 @@ async function sendCertificate(operator, sender, receiver) {
   console.log(`- Created NFT with Token ID: ${tokenId} \n`);
 
   //IPFS content identifiers for which we will create a NFT
-  CID = ["QmTzWcVfk88JRqjTpVwHzBeULRTNzHY7mnBSG42CpwHmPa"];
+  // CID = ["QmTzWcVfk88JRqjTpVwHzBeULRTNzHY7mnBSG42CpwHmPa"];
 
   let enc = new TextEncoder();
   let data = enc.encode("tfrbgtymh");
@@ -223,32 +261,20 @@ async function sendCertificate(operator, sender, receiver) {
 }
 
 async function hederaTransaction() {
-  senderDetails = await createAccount(500);
-  receiverDetails = await createAccount(0);
-
+  // senderDetails = await createAccount(500);
+  // receiverDetails = await createAccount(0);
   //   console.log(senderDetails);
-
   //   console.log(receiverDetails);
+  // let certificateSent = sendCertificate(
+  //   senderDetails,
+  //   senderDetails,
+  //   receiverDetails
+  // );
 
-  let certificateSent = sendCertificate(
-    senderDetails,
-    senderDetails,
-    receiverDetails
-  );
+  makeFileObjects();
+  let cid = storeFiles();
+
+  console.log(cid);
 }
-
-// const client = new Client(process.env.DATABASE_URL);
-
-// (async () => {
-//   await client.connect();
-//   try {
-//     const results = await client.query("SELECT NOW()");
-//     console.log(results);
-//   } catch (err) {
-//     console.error("error executing query:", err);
-//   } finally {
-//     client.end();
-//   }
-// })();
 
 module.exports = { hederaTransaction };
