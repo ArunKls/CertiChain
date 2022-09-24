@@ -5,10 +5,7 @@ const { createAccount } = require("../services/hederaservice");
 const bodyParser = require("body-parser");
 const jsonParser = bodyParser.json();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
-
-const {
-  createAccount
-} = require("../services/databaseservice");
+const { signupService } = require("../services/databaseservice");
 
 app.post("/signup", urlencodedParser, function (request, response) {
   //   console.log(request);
@@ -16,15 +13,6 @@ app.post("/signup", urlencodedParser, function (request, response) {
   data = request.body;
 
   console.log(data.firstName);
-
-  // Check if User exists
-  //   let userExists = false;
-
-  //   if (userExists) {
-  //     responseObject = { message: "User Already Exists", status: 500 };
-  //     response.status(500);
-  //     response.send(responseObject);
-  //   }
 
   // Call Create Account Service
   if (data.role == 400) {
@@ -36,14 +24,14 @@ app.post("/signup", urlencodedParser, function (request, response) {
 
         // Call Database Service
 
-        await createAccount(data.firstName, data.publicKey, data.accountId, data.privateKey, data.lastName, data.emailId, data.password, data.role);
+        signupService(data);
 
         responseObject = { message: "SignUp Successful", status: 200 };
         response.status(200);
         response.send(responseObject);
-        console.log("From Student", data);
       })
       .catch((error) => {
+        console.log("FROM ERROR");
         responseObject = { message: error, status: 500 };
         response.status(500);
         response.send(responseObject);
@@ -56,6 +44,8 @@ app.post("/signup", urlencodedParser, function (request, response) {
         data.privateKey = newAccount.privateKey;
 
         // Call Database Service
+
+        signupService(data);
 
         console.log("From Admin", data);
 

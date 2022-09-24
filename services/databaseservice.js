@@ -1,106 +1,79 @@
-const { Pool } = require("pg");
-const { v4: uuidv4 } = require("uuid");
+const bcrypt = require("bcrypt");
 
-var accountValues = Array(3);
+const { User } = require("../middleware/databaseconnection.js");
 
-// Wrapper for a transaction.  This automatically re-calls the operation with
-// the client as an argument as long as the database server asks for
-// the transaction to be retried.
-async function retryTxn(n, max, client, operation, callback) {
-  const backoffInterval = 100; // millis
-  const maxTries = 5;
-  let tries = 0;
+async function signupService(data) {
+  let encryptedPassword = bcrypt.hashSync(data.password, 10);
 
-  while (true) {
-    await client.query('BEGIN;');
+  console.log(encryptedPassword);
 
-    tries++;
+  await User.create({
+    firstName: data.firstName,
+    lastName: data.lastName,
+    emailId: data.emailId,
+    password: encryptedPassword,
+    role: data.role,
+    publicKey: data.publicKey,
+    privateKey: data.privateKey,
+    accountId: data.accountId,
+  });
 
-    try {
-      const result = await operation(client, callback);
-      await client.query('COMMIT;');
-      return result;
-    } catch (err) {
-      await client.query('ROLLBACK;');
-
-      if (err.code !== '40001' || tries == maxTries) {
-        throw err;
-      } else {
-        console.log('Transaction failed. Retrying.');
-        console.log(err.message);
-        await new Promise(r => setTimeout(r, tries * backoffInterval));
-      }
-    }
-  }
+  // User.create({
+  //   firstName: data.firstName,
+  //   lastName: data.lastName,
+  //   emailId: data.emailId,
+  //   password: encryptedPassword,
+  //   role: data.role,
+  //   publicKey: data.publicKey,
+  //   privateKey: data.privateKey,
+  //   accountId: data.accountId,
+  // })
+  //   .then((response) => {
+  //     console.log("TEST");
+  //     console.log(response);
+  //   })
+  //   .catch((error) => {
+  //     console.log(error);
+  //   });
 }
 
-async function createAccount(firstName, publicKey, accountId, privateKey, lastName, emailId, password, role) {
+// async function verifyAccount(
+//   firstName,
+//   publicKey,
+//   accountId,
+//   privateKey,
+//   lastName,
+//   emailId,
+//   password,
+//   role
+// ) {
+//   let encryptedPassword = crypt(password);
 
-  let encryptedPassword = crypt(password);
+//   const insertStatement =
+//     "INSERT INTO CertiChain.user_details (firstName, lastName, emailId, password, role, publicKey, privateKey, accountId) VALUES ? ;";
 
-  const insertStatement =
-    "INSERT INTO CertiChain.user_details (firstName, lastName, emailId, password, role, publicKey, privateKey, accountId) VALUES ? ;"
-  
-  var values = [firstName, lastName, emailId, encryptedPassword, role, publicKey, privateKey, accountId];
+//   var values = [
+//     firstName,
+//     lastName,
+//     emailId,
+//     encryptedPassword,
+//     role,
+//     publicKey,
+//     privateKey,
+//     accountId,
+//   ];
 
-  await client.query(insertStatement, values, callback);
+//   const connectionString = process.env.DATABASE_URL;
+//   const pool = new Pool({
+//     connectionString,
+//   });
 
-}
+//   // Connect to database
+//   const client = await pool.connect();
 
-async function verifyAccount(firstName, publicKey, accountId, privateKey, lastName, emailId, password, role) {
+//   await client.query(insertStatement, values, callback);
+// }
 
-  let encryptedPassword = crypt(password);
-
-  const insertStatement =
-    "INSERT INTO CertiChain.user_details (firstName, lastName, emailId, password, role, publicKey, privateKey, accountId) VALUES ? ;"
-  
-  var values = [firstName, lastName, emailId, encryptedPassword, role, publicKey, privateKey, accountId];
-
-  await client.query(insertStatement, values, callback);
-
-}
-
-var crypt = {
-  // (B1) THE SECRET KEY
-  secret : "CIPHERKEY",
- 
-  // (B2) ENCRYPT
-  encrypt : (password) => {
-    var cipher = CryptoJS.AES.encrypt(password, crypt.secret);
-    cipher = cipher.toString();
-    return cipher;
-  },
- 
-  //(B3) DECRYPT
-  decrypt : (password) => {
-    var decipher = CryptoJS.AES.decrypt(password, crypt.secret);
-    decipher = decipher.toString(CryptoJS.enc.Utf8);
-    return decipher;
-  }
-};
-(async () => {
-    const connectionString = process.env.DATABASE_URL;
-    const pool = new Pool({
-        connectionString,
-        application_name: "$ docs_simplecrud_node-postgres",
-    });
-
-    // Connect to database
-    const client = await pool.connect();
-
-    // Callback
-    function cb(err, res) {
-        if (err) throw err;
-
-        if (res.rows.length > 0) {
-        console.log("New account balances:");
-        res.rows.forEach((row) => {
-            console.log(row);
-        });
-        }
-    }
-});
 module.exports = {
-  createAccount,
+  signupService,
 };
-

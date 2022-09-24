@@ -60,9 +60,9 @@ async function createAccount(amount) {
   console.log("public key", typeof newAccountPublicKey);
 
   return {
-    accountId: newAccountId,
-    publicKey: newAccountPublicKey,
-    privateKey: newAccountPrivateKey,
+    accountId: newAccountId.toString(),
+    publicKey: newAccountPublicKey.toString(),
+    privateKey: newAccountPrivateKey.toString(),
   };
 }
 
