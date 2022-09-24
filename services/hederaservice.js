@@ -18,10 +18,8 @@ const {
 
 require("dotenv").config();
 // import { create } from "ipfs-http-client";
-const { Web3Storage } = require("web3.storage");
+const { Web3Storage, File } = require("web3.storage");
 const { Blob } = require("buffer");
-// const { File } = require();
-const fs = require("fs");
 
 function getAccessToken() {
   return process.env.WEB3STORAGE_TOKEN;
@@ -32,25 +30,14 @@ function makeStorageClient() {
 
 function makeFileObjects() {
   const obj = { "Certificate Name": "test" };
-  // const blob = new Blob([JSON.stringify(obj)], { type: "application/json" });
-
-  fs.writeFileSync("certificate.json", JSON.stringify(obj));
-
-  console.log("FILE CREATED");
-
-  // const file = new File([blob], "hello.json");
-
-  // return file;
+  const blob = new Blob([JSON.stringify(obj)], { type: "application/json" });
+  const file = new File([blob], "certificate.json");
+  return [file];
 }
 
-async function storeFiles() {
+async function storeFiles(file) {
   const client = makeStorageClient();
-  // let file = fs.readFileSync("certificate.json");
-  const pathFiles = await getFilesFromPath("certificate.json");
-
-  console.log("FILE CONTENTS", pathFiles);
-  console.log("FILE CONTENTS", ...pathFiles);
-  const cid = await client.put(...pathFiles);
+  const cid = await client.put(file);
   console.log("stored files with cid:", cid);
   return cid;
 }
@@ -355,17 +342,17 @@ async function sendTransaction(operator, sender, receiver) {
 }
 
 async function hederaTransaction() {
-  senderDetails = await createAccount(15);
-  receiverDetails = await createAccount(10);
+  // senderDetails = await createAccount(15);
+  // receiverDetails = await createAccount(10);
 
-  let certificateSent = sendTransaction(
-    senderDetails,
-    senderDetails,
-    receiverDetails
-  );
+  // let certificateSent = sendTransaction(
+  //   senderDetails,
+  //   senderDetails,
+  //   receiverDetails
+  // );
 
-  makeFileObjects();
-  let cid = storeFiles();
+  let file = makeFileObjects();
+  let cid = storeFiles(file);
   console.log(cid);
 }
 
