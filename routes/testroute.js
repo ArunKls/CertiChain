@@ -2,9 +2,9 @@ const { application } = require("express");
 const express = require("express");
 const router = express.Router();
 
-const service = require("../services/hederaservice");
+const mainService = require("../services/mainservice.js");
 app.get("/testhedera", function (request, response) {
-  const resp = service.hederaTransaction();
+  const resp = mainService.mainService();
 
   response.send(resp);
 });
