@@ -13,6 +13,7 @@ const {
   AccountCreateTransaction,
   Hbar,
   TokenInfoQuery,
+  AccountInfoQuery,
 } = require("@hashgraph/sdk");
 
 require("dotenv").config();
@@ -60,8 +61,13 @@ async function retrieveFileContents(cid) {
   for (const file of files) {
     // console.log(JSON.stringify(file));
 
-    let fileData = await file.text();
-    console.log(typeof fileData);
+    let fileData = await file.arrayBuffer();
+    console.log("FILE DATA", fileData);
+    var enc = new TextDecoder();
+
+    let objectData = enc.decode(fileData);
+
+    console.log(objectData);
   }
 }
 
@@ -365,18 +371,24 @@ async function sendTransaction(operator, sender, receiver, cid) {
     "The account balance for sender: " + senderAccBalance.hbars.toString()
   );
 
-  let accBalReceiverQuery = new AccountBalanceQuery().setAccountId(
+  // ----------------------------------------------
+  let accBalReceiverQuery = new AccountInfoQuery().setAccountId(
     receiverDetails.accountId
   );
 
-  //Sign with the client operator private key and submit to a Hedera network
-  const receiverAccBalance = await accBalReceiverQuery.execute(receiverClient);
-
-  console.log(
-    "The account balance for receiver: " + receiverAccBalance.hbars.toString()
+  let receiverMirrorClient = Client.forTestnet();
+  receiverMirrorClient.setMirrorNetwork(
+    "hcs.testnet.mirrornode.hedera.com:5600"
   );
-  console.log(receiverAccBalance.tokens.toString());
+  receiverMirrorClient.setOperator(receiverAccountId, receiverPrivateKey);
 
+  //Sign with the client operator private key and submit to a Hedera network
+  const receiverAccBalance = await accBalReceiverQuery.execute(
+    receiverMirrorClient
+  );
+
+  console.log("The account balance for receiver: " + receiverAccBalance);
+  // console.log(receiverAccBalance.tokens.toString());
 }
 
 async function hederaTransaction() {
@@ -386,15 +398,15 @@ async function hederaTransaction() {
   console.log(cid);
 
   retrieveFileContents(cid);
-  senderDetails = await createAccount(15);
-  receiverDetails = await createAccount(10);
+  // senderDetails = await createAccount(15);
+  // receiverDetails = await createAccount(10);
 
-  let certificateSent = sendTransaction(
-    senderDetails,
-    senderDetails,
-    receiverDetails,
-    cid
-  );
+  // let certificateSent = sendTransaction(
+  //   senderDetails,
+  //   senderDetails,
+  //   receiverDetails,
+  //   cid
+  // );
 }
 
 module.exports = { hederaTransaction };
