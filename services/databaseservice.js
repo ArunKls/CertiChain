@@ -4,6 +4,7 @@ const { response } = require("express");
 const { User } = require("../middleware/databaseconnection.js");
 const jwt = require("jsonwebtoken");
 const Sequelize = require("sequelize");
+const Op = Sequelize.Op;
 async function signupService(data) {
   let encryptedPassword = bcrypt.hashSync(data.password, 10);
 
@@ -50,78 +51,51 @@ async function signupService(data) {
   return await response;
 }
 
-<<<<<<< HEAD
 async function loginService(emailId, password) {
-    let user = await User.findOne({
-        where: {
-            emailId: emailId
-        }
-    });
-    if (!user) return false;
-    
-    bcrypt.compare(password, user.password, function(err, res) {
-      if (err){
-        console.log(err);
-      }
-      if (res) {
-        return true;
-      } else {
-        // response is OutgoingMessage object that server response http request
-        return false;
-      }
-    });
+  let user = await User.findOne({
+    where: {
+      emailId: emailId,
+    },
+  });
+  if (!user) return false;
+
+  bcrypt.compare(password, user.password, function (err, res) {
+    if (err) {
+      console.log(err);
+    }
+    if (res) {
+      return true;
+    } else {
+      // response is OutgoingMessage object that server response http request
+      return false;
+    }
+  });
 }
 
-async function searchService(query) {
-    let sequelize = new Sequelize(process.env.DATABASE_URL);
-    let result = await User.findAll({
-        where: {
-          [User.fn('concat', User.col('firstName'), ' ', User.col('lastName')), {
-            like: '%' + query + '%'
-          
-        }]},})
-});
-return result;
+async function searchService(query, queryType) {
+  let queryOn = "";
+  if (queryType == 0) {
+    queryOn = "emailId";
+  } else if (queryType == 1) {
+    queryOn = "firstName";
+  } else {
+    queryOn = "lastName";
+  }
+  console.log("INSIDE SEARCH");
+
+  let data = await User.findAll({
+    where: {
+      queryOn: {
+        [Op.like]: query,
+      },
+    },
+  });
+
+  return data;
 }
-// async function verifyAccount(
-//   firstName,
-//   publicKey,
-//   accountId,
-//   privateKey,
-//   lastName,
-//   emailId,
-//   password,
-//   role
-// ) {
-//   let encryptedPassword = crypt(password);
 
-//   const insertStatement =
-//     "INSERT INTO CertiChain.user_details (firstName, lastName, emailId, password, role, publicKey, privateKey, accountId) VALUES ? ;";
-
-//   var values = [
-//     firstName,
-//     lastName,
-//     emailId,
-//     encryptedPassword,
-//     role,
-//     publicKey,
-//     privateKey,
-//     accountId,
-//   ];
-
-//   const connectionString = process.env.DATABASE_URL;
-//   const pool = new Pool({
-//     connectionString,
-//   });
-
-//   // Connect to database
-//   const client = await pool.connect();
-
-//   await client.query(insertStatement, values, callback);
-// }
-
-=======
->>>>>>> 11399f58a64878132736c9da7b8f54437cbe84b8
 module.exports = {
-  signupService, loginService, searchService,
+  signupService,
+  loginService,
+  searchService,
 };
