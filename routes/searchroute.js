@@ -13,7 +13,7 @@ app.get("/search", urlencodedParser, async function (request, response) {
 
   searchService(query, queryType)
     .then((result) => {
-      console.log(result);
+      // console.log(result);
       searchResult = result;
       responseObject = {
         searchResult,

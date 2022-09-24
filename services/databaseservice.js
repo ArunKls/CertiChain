@@ -74,22 +74,33 @@ async function loginService(emailId, password) {
 
 async function searchService(query, queryType) {
   let queryOn = "";
+  let data;
   if (queryType == 0) {
-    queryOn = "emailId";
-  } else if (queryType == 1) {
-    queryOn = "firstName";
-  } else {
-    queryOn = "lastName";
-  }
-  console.log("INSIDE SEARCH");
-
-  let data = await User.findAll({
-    where: {
-      queryOn: {
-        [Op.like]: query,
+    data = await User.findAll({
+      where: {
+        emailId: {
+          [Op.like]: `%${query}%`,
+        },
       },
-    },
-  });
+    });
+  } else if (queryType == 1) {
+    data = await User.findAll({
+      where: {
+        firstName: {
+          [Op.like]: `%${query}%`,
+        },
+      },
+    });
+  } else {
+    data = await User.findAll({
+      where: {
+        lastName: {
+          [Op.like]: `%${query}%`,
+        },
+      },
+    });
+  }
+  // console.log("INSIDE SEARCH");
 
   return data;
 }
