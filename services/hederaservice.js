@@ -260,20 +260,112 @@ async function sendCertificate(operator, sender, receiver) {
   console.log(tokenSupply.toString());
 }
 
+async function sendTransaction(operator, sender, receiver) {
+  const operatorAccountId = operator.accountId;
+  const operatorPrivateKey = operator.privateKey;
+  const senderAccountId = sender.accountId;
+  const senderPrivateKey = sender.privateKey;
+  const receiverAccountId = receiver.accountId;
+  const receiverPrivateKey = receiver.privateKey;
+
+  // Create our connection to the Hedera network
+  // The Hedera JS SDK makes this really easy!
+  let client = Client.forTestnet().setOperator(
+    operatorAccountId,
+    operatorPrivateKey
+  );
+
+  const transaction = await new TokenCreateTransaction()
+    .setTokenName("USD Bar")
+    .setTokenSymbol("USDB")
+    .setTokenMemo("abcdefg")
+    .setTreasuryAccountId(operatorAccountId)
+    .setInitialSupply(10000)
+    .setDecimals(2)
+    .setAutoRenewAccountId(operatorAccountId)
+    .setAutoRenewPeriod(7000000)
+    .setMaxTransactionFee(new Hbar(30)) //Change the default max transaction fee
+    .freezeWith(client);
+
+  //Sign the transaction with the token treasury account private key
+  const signTx = await transaction.sign(operatorPrivateKey);
+
+  //Sign the transaction with the client operator private key and submit it to a Hedera network
+  const txResponse = await signTx.execute(client);
+
+  //Verify the transaction reached consensus
+  const transactionReceipt = await txResponse.getReceipt(client);
+  console.log(
+    "The transfer transaction from my account to the new account was: " +
+      transactionReceipt.status.toString()
+  );
+
+  //Get the token ID from the receipt
+  const tokenId = transactionReceipt.tokenId;
+
+  console.log("The new token ID is " + tokenId);
+
+  //Request the cost of the query
+  // const queryCost = await new AccountBalanceQuery()
+  //   .setAccountId(receiverAccountId)
+  //   .getCost(client);
+
+  // console.log("The cost of query is: " + queryCost);
+
+  client.setOperator(receiverDetails.accountId, receiverDetails.privateKey);
+
+  query = new TokenInfoQuery().setTokenId(tokenId);
+
+  //Sign with the client operator private key, submit the query to the network and get the token supply
+  const tokenSupply = (await query.execute(client)).tokenMemo;
+
+  console.log(tokenSupply.toString());
+
+  let senderClient = Client.forTestnet().setOperator(
+    senderAccountId,
+    senderPrivateKey
+  );
+
+  let accBalSenderQuery = new AccountBalanceQuery().setAccountId(
+    senderDetails.accountId
+  );
+
+  //Sign with the client operator private key and submit to a Hedera network
+  const senderAccBalance = await accBalSenderQuery.execute(senderClient);
+
+  console.log(
+    "The account balance for sender: " + senderAccBalance.hbars.toString()
+  );
+
+  let receiverClient = Client.forTestnet().setOperator(
+    receiverAccountId,
+    receiverPrivateKey
+  );
+
+  let accBalReceiverQuery = new AccountBalanceQuery().setAccountId(
+    receiverDetails.accountId
+  );
+
+  //Sign with the client operator private key and submit to a Hedera network
+  const receiverAccBalance = await accBalReceiverQuery.execute(receiverClient);
+
+  console.log(
+    "The account balance for receiver: " + receiverAccBalance.hbars.toString()
+  );
+}
+
 async function hederaTransaction() {
-  // senderDetails = await createAccount(500);
-  // receiverDetails = await createAccount(0);
-  //   console.log(senderDetails);
-  //   console.log(receiverDetails);
-  // let certificateSent = sendCertificate(
-  //   senderDetails,
-  //   senderDetails,
-  //   receiverDetails
-  // );
+  senderDetails = await createAccount(15);
+  receiverDetails = await createAccount(10);
+
+  let certificateSent = sendTransaction(
+    senderDetails,
+    senderDetails,
+    receiverDetails
+  );
 
   makeFileObjects();
   let cid = storeFiles();
-
   console.log(cid);
 }
 
