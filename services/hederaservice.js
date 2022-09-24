@@ -267,11 +267,10 @@ async function sendTransaction(operator, sender, receiver) {
     .setTokenSymbol("USDB")
     .setTokenMemo("abcdefg")
     .setTreasuryAccountId(operatorAccountId)
-    .setInitialSupply(10000)
+    .setInitialSupply(0)
     .setDecimals(2)
     .setAutoRenewAccountId(operatorAccountId)
-    .setAutoRenewPeriod(7000000)
-    .setMaxTransactionFee(new Hbar(30)) //Change the default max transaction fee
+    .setMaxTransactionFee(new Hbar(20)) //Change the default max transaction fee
     .freezeWith(client);
 
   //Sign the transaction with the token treasury account private key
