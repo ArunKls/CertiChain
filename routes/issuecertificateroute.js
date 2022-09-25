@@ -7,12 +7,13 @@ const jsonParser = bodyParser.json();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
 const { makeFileObjects, storeFile } = require("../services/web3service");
 const auth = require("../middleware/auth.js");
+
 app.post(
   "/issueCert",
   urlencodedParser,
   auth,
   async function (request, response) {
-    console.log(req.user);
+    console.log(request.user);
   }
 );
 
