@@ -9,12 +9,29 @@ const { makeFileObjects, storeFile } = require("../services/web3service");
 const auth = require("../middleware/auth.js");
 
 app.post(
-  "/issueCert",
+  "/issuecert",
   urlencodedParser,
   auth,
   async function (request, response) {
-    console.log(request.user);
-  }
+    let obj = request.user;
+  
+  file = makeFileObjects(certData);
+  cid = storeFile(file)
+  .then((result) => {
+    responseObject = {
+      status: 200,
+    };
+
+
+    response.status(200);
+    response.send(responseObject);
+  })
+  .catch((error) => {
+    responseObject = { message: error, status: 500 };
+    response.status(500);
+    response.send(responseObject);
+  });
+  
 );
 
 module.exports = router;
