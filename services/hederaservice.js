@@ -335,7 +335,7 @@ async function sendToken(operator, sender, receiver, tokenId) {
 }
 
 async function getBalance(clientDetails, name, getTokenCid) {
-  var result = [];
+  let result = [];
   let client = Client.forTestnet().setOperator(
     clientDetails.accountId,
     clientDetails.privateKey
@@ -343,47 +343,44 @@ async function getBalance(clientDetails, name, getTokenCid) {
   let accBalClientQuery = new AccountBalanceQuery().setAccountId(
     clientDetails.accountId
   );
+  console.log("INSIDE GET BALANCE");
 
-  //Sign with the client operator private key and submit to a Hedera network
-  accBalClientQuery
-    .execute(client)
-    .then(async (clientAccBalance) => {
-      console.log(
-        "The account balance for " +
-          name +
-          ": " +
-          clientAccBalance.hbars.toString()
-      );
+  accBalClientQuery.execute(client, async function (clientAccBalance) {
+    console.log("INSIDE THE FIXED FUNCTION");
+  });
 
-      if (getTokenCid === true) {
-        // var result = [];
-        let map = clientAccBalance.tokens._map;
+  let clientAccBalance = await accBalClientQuery.execute(client);
 
-        // console.log(map);
+  console.log("AMOUNT", clientAccBalance.hbars.toString());
 
-        map.forEach(async (value, key) => {
-          let query = new TokenInfoQuery().setTokenId(key);
-          let v = await query.execute(client);
-          console.log(v.tokenMemo);
-          await result.push(v.tokenMemo);
-        });
-        // .forEach(function (v, k) {
-        //   query = new TokenInfoQuery().setTokenId(k);
-        //   let value = await query.execute(client);
-        //   result.push(value.tokenMemo.toString());
+  if (getTokenCid === true) {
+    let response = await getCID(clientAccBalance, client);
 
-        // });
-        // console.log("RESULT", map);
-        // return result;
-      } else {
-        // return [];
-      }
-    })
-    .catch((error) => {
-      // return [];
-    });
+    return response;
+  } else {
+    return result;
+  }
+}
 
-  return await result;
+async function getCID(clientAccBalance, client) {
+  let result = [];
+
+  let map = clientAccBalance.tokens._map;
+
+  map.forEach(function (value, key) {
+    let query = new TokenInfoQuery().setTokenId(key);
+
+    let v = getTokenMemo(query, client);
+    result.push(v);
+  });
+
+  return result;
+}
+
+async function getTokenMemo(query, client) {
+  console.log("INSIDE GET MEMO");
+  let v = await query.execute(client);
+  return v.tokenMemo;
 }
 
 module.exports = {

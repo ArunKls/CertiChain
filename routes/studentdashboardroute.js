@@ -26,16 +26,18 @@ app.get(
       privateKey: PrivateKey.fromString(receiverObject.privateKey.toString()),
       accountId: AccountId.fromString(receiverObject.accountId.toString()),
     };
+
+    // let tokenMemoList;
+    // console.log("BEFORE FUNCTIOn");
     let tokenMemoList = await getBalance(receiverDetails, "receiver", true);
-    console.log("TOKEN MEMO LIST", tokenMemoList);
-    // retrieveFileContents(tokenMemoList).then((fileContents) => {
-    //   console.log(fileContents);
-    responseObject = {
-      Certificates: await tokenMemoList,
-      status: 200,
-    };
-    response.status(200);
-    response.send(responseObject);
+
+    let respoObject = [];
+    Promise.all(tokenMemoList).then((values) => {
+      respoObject = values;
+      response.status(200);
+      response.send(values);
+      // console.log(values);
+    });
   }
 );
 
