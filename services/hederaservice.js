@@ -236,7 +236,7 @@ async function createToken(operator, cid) {
   );
 
   const transaction = await new TokenCreateTransaction()
-    .setTokenName("USD Bar")
+    .setTokenName("201"+Math.floor(Math.random() * 10).toString())
     .setTokenSymbol("USDB")
     .setTokenMemo(cid.toString())
     .setTreasuryAccountId(operatorAccountId)
@@ -380,7 +380,7 @@ async function getCID(clientAccBalance, client) {
 async function getTokenMemo(query, client) {
   console.log("INSIDE GET MEMO");
   let v = await query.execute(client);
-  return { cid: v.tokenMemo, issuer: v.treasuryAccountId.toString() };
+  return { cid: v.tokenMemo, issuer: v.treasuryAccountId.toString(), year: v.name.toString() };
 }
 
 module.exports = {

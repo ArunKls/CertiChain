@@ -33,6 +33,7 @@ app.post(
 
     let respoObject = [];
     Promise.all(tokenMemoList).then((values) => {
+      
       respoObject = values;
       response.status(200);
       response.send(values);
