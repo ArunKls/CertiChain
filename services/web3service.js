@@ -7,11 +7,7 @@ function makeStorageClient() {
   return new Web3Storage({ token: getAccessToken() });
 }
 
-function makeFileObjects() {
-  const obj = {
-    "Certificate Name": "test35444444",
-    "Certificate Details": "tsss",
-  };
+function makeFileObjects(obj) {
   const file = new File([JSON.stringify(obj)], "certificate3.txt");
   return [file];
 }

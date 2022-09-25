@@ -14,6 +14,12 @@ app.use(searchroute);
 const testroute = require("./routes/testroute.js");
 app.use(testroute);
 
+const certroute = require("./routes/certroute.js");
+app.use(certroute);
+
+const issuecertificateroute = require("./routes/issuecertificateroute.js");
+app.use(issuecertificateroute);
+
 // app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({ extended: true }));
 

@@ -7,24 +7,25 @@ const jsonParser = bodyParser.json();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
 const { certService } = require("../services/databaseservice");
 
-app.post("/cert", urlencodedParser, async function (request, response) {
-  emailId = request.body.emailId;
-  password = request.body.password;
+app.get("/cert", urlencodedParser, async function (request, response) {
+  id = request.body.id;
 
-  let checkUser = await loginService(emailId, password);
-  // Check Database Service
-  // if true
-
-  if (checkUser) {
-    object = { message: "Logged in Succesfully!", status: 200 };
-
-    response.status(200);
-    response.send(object);
-  } else {
-    object = { message: "Invalid Login Credentials", status: 501 };
-    response.status(501);
-    response.send(object);
-  }
+  certService(id)
+    .then((result) => {
+      // console.log(result);
+      searchResult = result;
+      responseObject = {
+        searchResult,
+        status: 200,
+      };
+      response.status(200);
+      response.send(responseObject);
+    })
+    .catch((error) => {
+      responseObject = { message: error, status: 500 };
+      response.status(500);
+      response.send(responseObject);
+    });
 });
 
 module.exports = router;

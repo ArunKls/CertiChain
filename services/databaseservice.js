@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const { response } = require("express");
 
-const { User } = require("../middleware/databaseconnection.js");
+const { User, Academics } = require("../middleware/databaseconnection.js");
 const jwt = require("jsonwebtoken");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
@@ -32,12 +32,13 @@ async function signupService(data) {
       item.update({
         token: token,
       });
-
+      console.log(item.id);
       // item.token = token;
       response = {
         message: "Item Created",
         status: 200,
         token: token,
+        id: item.id,
       };
     })
     .catch((error) => {
@@ -50,7 +51,23 @@ async function signupService(data) {
   // console.log(await response);
   return await response;
 }
-
+async function addAcademicData(data) {
+  const user = await Academics.create({
+    studentId: data.studentId,
+    degree: data.degree,
+    schoolName: data.schoolName,
+    division: data.division,
+    year: data.year,
+  })
+  .then(() => {
+    console.log("Student academic data Created");
+  })
+  .catch((error) => {
+    console.log(error);
+  })
+  ;
+  return response;
+}
 async function loginService(emailId, password) {
   let user = await User.findOne({
     where: {
@@ -105,8 +122,19 @@ async function searchService(query, queryType) {
   return data;
 }
 
+async function certService(id) {
+  let data = await Academics.findAll({
+    where: {
+      studentId: id,
+    },
+  });
+  return data;
+}
+
 module.exports = {
   signupService,
   loginService,
   searchService,
+  certService,
+  addAcademicData,
 };

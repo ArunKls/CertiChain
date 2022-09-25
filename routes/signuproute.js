@@ -5,7 +5,7 @@ const { createAccount } = require("../services/hederaservice");
 const bodyParser = require("body-parser");
 const jsonParser = bodyParser.json();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
-const { signupService } = require("../services/databaseservice");
+const { signupService, addAcademicData } = require("../services/databaseservice");
 
 app.post("/signup", urlencodedParser, function (request, response) {
   data = request.body;
@@ -35,6 +35,14 @@ app.post("/signup", urlencodedParser, function (request, response) {
         data.privateKey = newAccount.privateKey;
 
         let res = await signupService(data);
+
+        let res2 = await addAcademicData({
+          studentId: res.id,
+          degree: "Masters",
+          schoolName: "Rutgers",
+          division: "A",
+          year: 2022,
+        });
         response.send(res);
       })
       .catch((error) => {

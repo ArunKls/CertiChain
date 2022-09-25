@@ -1,12 +1,3 @@
-/*
-username= sri
-host = free-tier14.aws-us-east-1.cockroachlabs.cloud
-password = MVD5CEJS3k9C-0DN27U0Hg
-port = 26257
-database = defaultdb
-
-*/
-
 const Sequelize = require("sequelize");
 const fs = require("fs");
 
@@ -79,4 +70,38 @@ const User = sequelize.define("users", {
 
 User.sync();
 
-module.exports = { User };
+const Academics = sequelize.define("academics", {
+  id: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+    unique: true,
+  },
+
+  studentId: {
+    type: Sequelize.INTEGER,
+    references: "users",
+    referencesKey: "id",
+  },
+
+  degree: {
+    type: Sequelize.STRING,
+  },
+
+  schoolName: {
+    type: Sequelize.STRING,
+  },
+
+  division: {
+    type: Sequelize.STRING,
+  },
+
+  year: {
+    type: Sequelize.INTEGER,
+  },
+});
+
+User.sync();
+Academics.sync();
+
+module.exports = { User, Academics };
