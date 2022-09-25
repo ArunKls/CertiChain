@@ -15,8 +15,9 @@ app.get(
   urlencodedParser,
   async function (request, response) {
     retrieveFileContents([request.body.cid]).then((fileContents) => {
-      console.log(fileContents[0]);
+      let fc = fileContents["files"][0];
       responseObject = {
+        fc,
         status: 200,
       };
       response.status(200);
