@@ -32,8 +32,8 @@ app.use(filecontents);
 // app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({ extended: true }));
 
+const PORT = process.env.PORT || 8001;
 
-
-app.listen(8001, "0.0.0.0", function () {
-  console.log("SERVER IS RUNNING");
+app.listen(PORT, function () {
+  console.log(`server started on port ${PORT}`);
 });
