@@ -13,7 +13,7 @@ const { rowService } = require("../services/databaseservice");
 
 const { PrivateKey, PublicKey, AccountId } = require("@hashgraph/sdk");
 
-app.get(
+app.post(
   "/studentdashboard",
   urlencodedParser,
   auth,
