@@ -15,6 +15,7 @@ const {
   Hbar,
   TokenInfoQuery,
 } = require("@hashgraph/sdk");
+const { query } = require("express");
 
 require("dotenv").config();
 
@@ -226,6 +227,9 @@ async function createToken(operator, cid) {
   const operatorAccountId = operator.accountId;
   const operatorPrivateKey = operator.privateKey;
 
+  console.log(operatorAccountId);
+  console.log(operatorPrivateKey);
+
   let client = Client.forTestnet().setOperator(
     operatorAccountId,
     operatorPrivateKey
@@ -242,6 +246,7 @@ async function createToken(operator, cid) {
     .setMaxTransactionFee(new Hbar(20)) //Change the default max transaction fee
     .freezeWith(client);
 
+  console.log("OPERATOR PRIVATE KEY", operatorPrivateKey);
   //Sign the transaction with the token treasury account private key
   const signTx = await transaction.sign(operatorPrivateKey);
 
@@ -330,6 +335,7 @@ async function sendToken(operator, sender, receiver, tokenId) {
 }
 
 async function getBalance(clientDetails, name, getTokenCid) {
+  var result = [];
   let client = Client.forTestnet().setOperator(
     clientDetails.accountId,
     clientDetails.privateKey
@@ -339,28 +345,45 @@ async function getBalance(clientDetails, name, getTokenCid) {
   );
 
   //Sign with the client operator private key and submit to a Hedera network
-  const clientAccBalance = await accBalClientQuery.execute(client);
+  accBalClientQuery
+    .execute(client)
+    .then(async (clientAccBalance) => {
+      console.log(
+        "The account balance for " +
+          name +
+          ": " +
+          clientAccBalance.hbars.toString()
+      );
 
-  console.log(
-    "The account balance for " + name + ": " + clientAccBalance.hbars.toString()
-  );
-  const result = [];
-  if (getTokenCid === true) {
-    console.log("INSIDE");
-    clientAccBalance.tokens._map.forEach((v, k) => {
-      query = new TokenInfoQuery().setTokenId(k);
-      query.execute(client).then((value) => {
-        tokenMemo = value.tokenMemo;
+      if (getTokenCid === true) {
+        // var result = [];
+        let map = clientAccBalance.tokens._map;
 
-        console.log("TOKEN MEMO", tokenMemo);
-        console.log("cid: " + tokenMemo.toString());
-        result.push(tokenMemo.toString());
-      });
+        // console.log(map);
+
+        map.forEach(async (value, key) => {
+          let query = new TokenInfoQuery().setTokenId(key);
+          let v = await query.execute(client);
+          console.log(v.tokenMemo);
+          await result.push(v.tokenMemo);
+        });
+        // .forEach(function (v, k) {
+        //   query = new TokenInfoQuery().setTokenId(k);
+        //   let value = await query.execute(client);
+        //   result.push(value.tokenMemo.toString());
+
+        // });
+        // console.log("RESULT", map);
+        // return result;
+      } else {
+        // return [];
+      }
+    })
+    .catch((error) => {
+      // return [];
     });
-  }
 
-  console.log("RESULT", result);
-  return result;
+  return await result;
 }
 
 module.exports = {

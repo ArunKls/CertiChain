@@ -20,6 +20,12 @@ app.use(certroute);
 const issuecertificateroute = require("./routes/issuecertificateroute.js");
 app.use(issuecertificateroute);
 
+const studentdashboard = require("./routes/studentdashboardroute.js");
+app.use(studentdashboard);
+
+const filecontents = require("./routes/filecontents.js");
+app.use(filecontents);
+
 // app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({ extended: true }));
 

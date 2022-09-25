@@ -59,13 +59,12 @@ async function addAcademicData(data) {
     division: data.division,
     year: data.year,
   })
-  .then(() => {
-    console.log("Student academic data Created");
-  })
-  .catch((error) => {
-    console.log(error);
-  })
-  ;
+    .then(() => {
+      console.log("Student academic data Created");
+    })
+    .catch((error) => {
+      console.log(error);
+    });
   return response;
 }
 async function loginService(emailId, password) {
@@ -137,9 +136,18 @@ async function searchService(query, queryType) {
 }
 
 async function certService(id) {
-  let data = await Academics.findAll({
+  let data = await Academics.findOne({
     where: {
       studentId: id,
+    },
+  });
+  return data;
+}
+
+async function rowService(id) {
+  let data = await User.findOne({
+    where: {
+      id: id,
     },
   });
   return data;
@@ -151,4 +159,5 @@ module.exports = {
   searchService,
   certService,
   addAcademicData,
+  rowService,
 };
