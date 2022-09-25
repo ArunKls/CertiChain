@@ -10,7 +10,7 @@ const { retrieveFileContents } = require("../services/web3service");
 
 const { PrivateKey, PublicKey, AccountId } = require("@hashgraph/sdk");
 
-app.get(
+app.post(
   "/filecontents",
   urlencodedParser,
   async function (request, response) {
