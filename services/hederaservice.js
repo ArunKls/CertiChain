@@ -380,7 +380,7 @@ async function getCID(clientAccBalance, client) {
 async function getTokenMemo(query, client) {
   console.log("INSIDE GET MEMO");
   let v = await query.execute(client);
-  return v.tokenMemo;
+  return { cid: v.tokenMemo, issuer: v.treasuryAccountId.toString() };
 }
 
 module.exports = {
