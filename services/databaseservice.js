@@ -69,28 +69,42 @@ async function addAcademicData(data) {
   return response;
 }
 async function loginService(emailId, password) {
+  let response;
+
   let user = await User.findOne({
     where: {
       emailId: emailId,
     },
   });
-  if (!user) return false;
 
-  bcrypt.compare(password, user.password, function (err, res) {
-    if (err) {
-      console.log(err);
-    }
-    if (res) {
-      return true;
+  if (!user) response = { status: 404 };
+  else {
+    let passwordCompare = bcrypt.compareSync(password, user.password);
+
+    if (passwordCompare) {
+      console.log("JWTT");
+      const token = jwt.sign(
+        { user_id: user.id, email: user.emailId },
+        process.env.JWT_TOKEN_KEY,
+        {
+          expiresIn: "2h",
+        }
+      );
+
+      user.update({
+        token: token,
+      });
+
+      response = { token: token, status: 200 };
     } else {
-      // response is OutgoingMessage object that server response http request
-      return false;
+      response = { status: 401 };
     }
-  });
+  }
+
+  return response;
 }
 
 async function searchService(query, queryType) {
-  let queryOn = "";
   let data;
   if (queryType == 0) {
     data = await User.findAll({

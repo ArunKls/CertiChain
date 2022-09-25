@@ -12,11 +12,11 @@ app.post("/login", urlencodedParser, async function (request, response) {
   password = request.body.password;
 
   let checkUser = await loginService(emailId, password);
-  // Check Database Service
-  // if true
 
-  if (checkUser) {
-    object = { message: "Logged in Succesfully!", status: 200 };
+  console.log("CHECK USER", checkUser);
+
+  if (checkUser.status === 200) {
+    object = checkUser; //
 
     response.status(200);
     response.send(object);
