@@ -14,24 +14,19 @@ app.post(
   auth,
   async function (request, response) {
     let obj = request.user;
-  
-  file = makeFileObjects(certData);
-  cid = storeFile(file)
-  .then((result) => {
-    responseObject = {
-      status: 200,
-    };
-
-
-    response.status(200);
-    response.send(responseObject);
-  })
-  .catch((error) => {
-    responseObject = { message: error, status: 500 };
-    response.status(500);
-    response.send(responseObject);
-  });
-  
+    let receiverId = request.body.studentId;
+    let certData = request.body.certData;
+    let file = makeFileObjects(certData);
+    storeFile(file).then((cid) => {
+      createToken(senderDetails, cid).then((tokenId) => {
+        sendToken(senderDetails, senderDetails, receiverDetails, tokenId).then(
+          (tokenSent) => {
+            console.log("Token Sent");
+          }
+        );
+      });
+    });
+  }
 );
 
 module.exports = router;
